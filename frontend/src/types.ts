@@ -22,3 +22,15 @@ export interface ChatMessage {
   responses?: AgentResponse[];      // assistant only (multi-agent)
   timestamp: string;
 }
+
+export interface User {
+  _id: string;
+  email: string;
+  name: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
