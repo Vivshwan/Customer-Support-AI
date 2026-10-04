@@ -21,7 +21,7 @@ export function ChatWindow({ messages, isLoading }: Props) {
         <div className="text-center py-16 text-gray-400">
           <p className="text-lg font-medium">👋 Welcome to TechMart Support</p>
           <p className="text-sm mt-1">
-            Ask me about refunds, shipping, products, or technical issues.
+            Ask about refunds, shipping, products, or technical issues.
           </p>
         </div>
       )}
