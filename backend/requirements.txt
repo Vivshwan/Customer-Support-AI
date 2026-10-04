@@ -15,5 +15,5 @@ python-multipart
 pydantic
 python-dotenv
 pandas
-angchain-groq
 langchain-huggingface
+langchain-groq

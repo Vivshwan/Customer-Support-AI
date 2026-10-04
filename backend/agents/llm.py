@@ -1,19 +1,16 @@
 """
-Shared LLM factory.
+Shared LLM factory with automatic rate-limit retry.
 Reads LLM_PROVIDER from .env and returns the matching chat model.
-
-Supported providers:
-    - "openai"  -> ChatOpenAI (gpt-4o-mini)
-    - "groq"    -> ChatGroq  (llama-3.3-70b-versatile)
 """
 import os
+import time
 from functools import lru_cache
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DEFAULT_PROVIDER = "groq"  # change here if .env is missing LLM_PROVIDER
+DEFAULT_PROVIDER = "groq"
 
 
 @lru_cache(maxsize=1)
@@ -36,16 +33,15 @@ def _build_groq():
 
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        raise RuntimeError(
-            "GROQ_API_KEY is missing. Add it to backend/.env "
-            "or switch LLM_PROVIDER to 'openai'."
-        )
+        raise RuntimeError("GROQ_API_KEY is missing in backend/.env")
 
     return ChatGroq(
-        model="openai/gpt-oss-120b",
+        model="openai/gpt-oss-20b",       # 👈 lighter model = higher rate limit headroom
         temperature=0.2,
         api_key=api_key,
         max_tokens=600,
+        max_retries=5,                     # 👈 built-in retry on 429/5xx
+        timeout=60,
     )
 
 
@@ -54,14 +50,13 @@ def _build_openai():
 
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise RuntimeError(
-            "OPENAI_API_KEY is missing. Add it to backend/.env "
-            "or switch LLM_PROVIDER to 'groq'."
-        )
+        raise RuntimeError("OPENAI_API_KEY is missing in backend/.env")
 
     return ChatOpenAI(
         model="gpt-4o-mini",
         temperature=0.2,
         api_key=api_key,
         max_tokens=600,
+        max_retries=3,
+        timeout=60,
     )
