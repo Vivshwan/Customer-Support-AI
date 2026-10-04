@@ -1,0 +1,30 @@
+# Environment — never commit these
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# Python
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Vector store (regenerable)
+backend/rag/vectorstore/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
