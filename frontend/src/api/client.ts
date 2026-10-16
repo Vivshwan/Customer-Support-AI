@@ -4,6 +4,7 @@ import type {
   ChatResponse,
   Conversation,
   User,
+  AnalyticsSummary, 
 } from "../types";
 
 // ---------- Config ----------
@@ -134,5 +135,14 @@ export async function sendChatMessage(
 
 export async function healthCheck() {
   const { data } = await api.get("/health");
+  return data;
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+export async function fetchAnalytics(): Promise<AnalyticsSummary> {
+  const { data } = await api.get<AnalyticsSummary>("/analytics/summary");
   return data;
 }

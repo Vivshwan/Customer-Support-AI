@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 from agents.router import route
 from auth.dependencies import get_current_user
 from auth.routes import router as auth_router
+from routes.analytics import router as analytics_router 
 from database import memory, users
 
 load_dotenv()
@@ -50,6 +51,7 @@ app.add_middleware(
 
 # Include auth routes
 app.include_router(auth_router)
+app.include_router(analytics_router)
 
 
 # ---------- Startup ----------

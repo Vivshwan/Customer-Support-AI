@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { Conversation } from "../types";
 
 interface Props {
@@ -21,7 +22,7 @@ export function Sidebar({
 }: Props) {
   return (
     <aside className="w-64 bg-gray-900 text-white flex flex-col h-full">
-      {/* Header */}
+      {/* ---------- Header ---------- */}
       <div className="px-4 py-4 border-b border-gray-800">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm">
@@ -34,6 +35,7 @@ export function Sidebar({
             </p>
           </div>
         </div>
+
         <button
           onClick={onNew}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm
@@ -41,9 +43,16 @@ export function Sidebar({
         >
           + New chat
         </button>
+
+        <Link
+          to="/dashboard"
+          className="block mt-2 text-xs text-gray-400 hover:text-white px-1 transition-colors"
+        >
+          📊 View analytics
+        </Link>
       </div>
 
-      {/* Conversation list */}
+      {/* ---------- Conversation list ---------- */}
       <div className="flex-1 overflow-y-auto py-2">
         {conversations.length === 0 ? (
           <p className="text-xs text-gray-500 text-center px-4 py-8">
@@ -54,9 +63,7 @@ export function Sidebar({
             <div
               key={c._id}
               className={`group flex items-center gap-2 px-3 py-2 mx-2 rounded-lg cursor-pointer transition-colors ${
-                activeId === c._id
-                  ? "bg-gray-700"
-                  : "hover:bg-gray-800"
+                activeId === c._id ? "bg-gray-700" : "hover:bg-gray-800"
               }`}
               onClick={() => onSelect(c._id)}
             >
@@ -77,7 +84,7 @@ export function Sidebar({
         )}
       </div>
 
-      {/* Footer */}
+      {/* ---------- Footer ---------- */}
       <div className="px-4 py-3 border-t border-gray-800">
         <button
           onClick={onLogout}

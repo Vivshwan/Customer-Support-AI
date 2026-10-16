@@ -40,3 +40,35 @@ export interface ChatMessage {
   responses?: AgentResponse[];
   timestamp: string;
 }
+
+// ---------- Analytics ----------
+export interface AnalyticsTotals {
+  conversations: number;
+  messages: number;
+  assistant_messages: number;
+  agent_calls: number;
+}
+
+export interface AgentUsage {
+  agent: string;
+  count: number;
+}
+
+export interface DailyCount {
+  date: string;
+  count: number;
+}
+
+export interface RecentConversation {
+  id: string;
+  title: string;
+  message_count: number;
+  updated_at: string;
+}
+
+export interface AnalyticsSummary {
+  totals: AnalyticsTotals;
+  agents: AgentUsage[];
+  daily: DailyCount[];
+  recent: RecentConversation[];
+}
