@@ -8,7 +8,7 @@ import type {
 } from "../types";
 
 // ---------- Config ----------
-const API_BASE = "http://localhost:8000";
+const API_BASE = "https://techmart-backend-3req.onrender.com";
 const TOKEN_KEY = "techmart_token";
 
 // ---------- Axios instance ----------
