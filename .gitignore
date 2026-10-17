@@ -19,7 +19,7 @@ frontend/node_modules/
 frontend/dist/
 
 # Vector store (regenerable)
-backend/rag/vectorstore/
+# backend/rag/vectorstore/
 
 # IDE
 .vscode/
