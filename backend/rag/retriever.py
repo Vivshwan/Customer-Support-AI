@@ -1,24 +1,28 @@
 """
-Retriever module
-----------------
+Retriever module (Gemini API Mode)
+----------------------------------
 Loads the saved FAISS index and returns relevant chunks.
-Used by all agents for Retrieval-Augmented Generation (RAG).
+Uses Google Gemini API for embeddings to save memory on cloud deployments.
 
 Quick test (from backend/):
     python -m rag.retriever
 """
+import os
 from pathlib import Path
 from functools import lru_cache
 
-from langchain_huggingface import HuggingFaceEmbeddings
+from dotenv import load_dotenv
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
+
+load_dotenv()
 
 # ---------- Paths ----------
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 VECTOR_PATH = BACKEND_DIR / "rag" / "vectorstore" / "faiss_index"
 
 # ---------- Config ----------
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "gemini-embedding-001"
 DEFAULT_K = 4
 
 
@@ -27,7 +31,7 @@ DEFAULT_K = 4
 def _load_vectorstore() -> FAISS:
     """
     Load and cache the FAISS index.
-    Cached so the embedding model loads only once per process.
+    Uses the Gemini API for query embeddings.
     """
     if not VECTOR_PATH.exists():
         raise FileNotFoundError(
@@ -35,16 +39,19 @@ def _load_vectorstore() -> FAISS:
             f"Run `python -m rag.ingest` first."
         )
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL,
-        model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": True},
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise ValueError("GOOGLE_API_KEY is missing in backend/.env")
+
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model=EMBEDDING_MODEL,
+        google_api_key=api_key
     )
 
     return FAISS.load_local(
         str(VECTOR_PATH),
         embeddings,
-        allow_dangerous_deserialization=True,  # safe: our own local file
+        allow_dangerous_deserialization=True,
     )
 
 
@@ -58,15 +65,6 @@ def get_retriever(k: int = DEFAULT_K):
 def retrieve_with_sources(query: str, k: int = DEFAULT_K) -> list[dict]:
     """
     Retrieve top-k chunks with source metadata.
-    Useful for citations in the frontend and for feeding agents.
-
-    Returns a list of dicts:
-        {
-            "content": str,
-            "source":  str,   # e.g. "RefundPolicy.pdf"
-            "page":    int | None,
-            "score":   float  # lower = more similar (L2 distance)
-        }
     """
     db = _load_vectorstore()
     results = db.similarity_search_with_score(query, k=k)
@@ -85,7 +83,6 @@ def retrieve_with_sources(query: str, k: int = DEFAULT_K) -> list[dict]:
 def format_context(results: list[dict]) -> str:
     """
     Format retrieved chunks into a clean context string for the LLM.
-    Each chunk is prefixed with its source so the LLM can cite it.
     """
     if not results:
         return "(No relevant context found in the knowledge base.)"

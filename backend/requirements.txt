@@ -3,9 +3,9 @@ uvicorn[standard]
 langchain
 langchain-openai
 langchain-community
+langchain-google-genai
 langgraph
 faiss-cpu
-sentence-transformers
 pypdf
 python-jose[cryptography]
 passlib[bcrypt]
@@ -17,5 +17,4 @@ python-multipart
 pydantic
 python-dotenv
 pandas
-langchain-huggingface
 langchain-groq

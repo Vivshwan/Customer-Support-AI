@@ -1,9 +1,8 @@
 """
-RAG Ingestion Script
---------------------
-Reads all PDFs from backend/knowledge_base/, cleans extracted text,
-splits them into overlapping chunks, generates embeddings, and saves
-a FAISS vector index locally.
+RAG Ingestion Script (Gemini API Mode)
+--------------------------------------
+Reads all PDFs from backend/knowledge_base/, cleans text, 
+generates embeddings via Google Gemini API, and saves a FAISS index.
 
 Run from the backend/ folder:
     python -m rag.ingest
@@ -12,10 +11,13 @@ import os
 import re
 from pathlib import Path
 
+from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
+
+load_dotenv()
 
 # ---------- Paths ----------
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -23,39 +25,27 @@ KB_PATH = BACKEND_DIR / "knowledge_base"
 VECTOR_PATH = BACKEND_DIR / "rag" / "vectorstore" / "faiss_index"
 
 # ---------- Config ----------
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+# Gemini's recommended model for text embeddings
+EMBEDDING_MODEL = "gemini-embedding-001"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 80
 
 
 # ---------- Text cleaning ----------
 def clean_text(text: str) -> str:
-    """
-    Fix PyPDF extraction artifacts where every word ends up on its own line.
-    Example: 'TechMart\\n \\nElectronics' -> 'TechMart Electronics'
-    """
+    """Fix PyPDF extraction artifacts where every word ends up on its own line."""
     if not text:
         return ""
-
-    # Normalize unicode whitespace
     text = text.replace("\xa0", " ")
-
-    # Preserve paragraph breaks (2+ newlines), collapse single newlines to space
-    text = re.sub(r"\n\s*\n+", "\n\n", text)   # multiple newlines -> paragraph break
-    text = re.sub(r"(?<!\n)\n(?!\n)", " ", text)  # single newline -> space
-
-    # Collapse multiple spaces
+    text = re.sub(r"\n\s*\n+", "\n\n", text)   
+    text = re.sub(r"(?<!\n)\n(?!\n)", " ", text)  
     text = re.sub(r"[ \t]+", " ", text)
-
-    # Remove spaces around newlines
     text = re.sub(r" *\n *", "\n", text)
-
     return text.strip()
 
 
 # ---------- Loading ----------
 def load_documents():
-    """Load and clean all PDFs from knowledge_base/."""
     if not KB_PATH.exists():
         raise FileNotFoundError(f"Knowledge base folder not found: {KB_PATH}")
 
@@ -76,9 +66,7 @@ def load_documents():
             d.page_content = clean_text(d.page_content)
             d.metadata["source_file"] = pdf.name
 
-        # Drop pages that became empty after cleaning
         docs = [d for d in docs if d.page_content]
-
         all_docs.extend(docs)
         print(f"  Loaded {len(docs)} page(s) from {pdf.name}")
 
@@ -88,7 +76,6 @@ def load_documents():
 
 # ---------- Splitting ----------
 def split_documents(docs):
-    """Split documents into overlapping chunks."""
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
@@ -96,24 +83,25 @@ def split_documents(docs):
         length_function=len,
     )
     chunks = splitter.split_documents(docs)
-    print(f"Split into {len(chunks)} chunks "
-          f"(size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP})")
+    print(f"Split into {len(chunks)} chunks (size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP})")
     return chunks
 
 
 # ---------- Embedding + Vector store ----------
 def build_vectorstore(chunks):
-    """Embed chunks and build a FAISS index."""
-    print(f"\nLoading embedding model: {EMBEDDING_MODEL}")
-    print("(First run may download ~90 MB from Hugging Face)")
+    print(f"\nLoading API embedding model: {EMBEDDING_MODEL}")
+    
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise ValueError("GOOGLE_API_KEY is missing in backend/.env")
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL,
-        model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": True},
+    # Initialize Gemini Embeddings
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model=EMBEDDING_MODEL,
+        google_api_key=api_key
     )
 
-    print("Generating embeddings and building FAISS index...")
+    print("Generating embeddings via Gemini API and building FAISS index...")
     db = FAISS.from_documents(chunks, embeddings)
 
     VECTOR_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -125,7 +113,7 @@ def build_vectorstore(chunks):
 # ---------- Main ----------
 def main():
     print("=" * 60)
-    print(" TechMart RAG Ingestion")
+    print(" TechMart RAG Ingestion (Gemini Mode)")
     print("=" * 60)
 
     docs = load_documents()
