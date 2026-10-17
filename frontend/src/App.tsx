@@ -20,8 +20,8 @@ export default function App() {
   const { user, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Left: sidebar */}
+    <div className="flex h-screen w-full bg-zinc-950 overflow-hidden">
+      {/* Left: Sidebar */}
       <Sidebar
         conversations={conversations}
         activeId={activeId}
@@ -32,37 +32,32 @@ export default function App() {
         userName={user?.name}
       />
 
-      {/* Right: chat */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-3xl h-[90vh] bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden">
-          {/* Header */}
-          <header className="px-6 py-4 border-b bg-white">
-            <h1 className="font-semibold text-gray-900">TechMart Support</h1>
-            <p className="text-xs text-gray-500">
-              {user ? `Signed in as ${user.name}` : "AI multi-agent assistant"}
-            </p>
-          </header>
+      {/* Right: Chat Area */}
+      <main className="flex-1 flex flex-col relative h-full">
+        {/* Header */}
+        <header className="h-14 border-b border-zinc-800/50 flex items-center px-6 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-10">
+          <h1 className="font-semibold text-zinc-200">Customer Support</h1>
+        </header>
 
-          {/* Body */}
-          {isLoadingConv ? (
-            <div className="flex-1 flex items-center justify-center text-gray-400">
-              Loading conversation...
-            </div>
-          ) : (
-            <ChatWindow messages={messages} isLoading={isLoading} />
-          )}
+        {/* Chat Body */}
+        {isLoadingConv ? (
+          <div className="flex-1 flex items-center justify-center text-zinc-500">
+            Loading conversation...
+          </div>
+        ) : (
+          <ChatWindow messages={messages} isLoading={isLoading} />
+        )}
 
-          {/* Error banner */}
-          {error && (
-            <div className="px-4 py-2 bg-red-50 text-red-700 text-sm border-t border-red-200">
-              ⚠️ {error}
-            </div>
-          )}
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-500/10 border-t border-red-500/20 text-red-400 text-sm px-6 py-2 text-center">
+            {error}
+          </div>
+        )}
 
-          {/* Input */}
-          <ChatInput onSend={send} disabled={isLoading} />
-        </div>
-      </div>
+        {/* Input */}
+        <ChatInput onSend={send} disabled={isLoading} />
+      </main>
     </div>
   );
 }

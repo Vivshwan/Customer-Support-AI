@@ -1,37 +1,45 @@
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { FileText } from "lucide-react";
 import type { AgentResponse } from "../types";
 
 const AGENT_META: Record<string, { label: string; color: string }> = {
-  billing:   { label: "Billing",   color: "bg-emerald-100 text-emerald-800" },
-  technical: { label: "Technical", color: "bg-blue-100 text-blue-800" },
-  product:   { label: "Product",   color: "bg-purple-100 text-purple-800" },
-  complaint: { label: "Complaint", color: "bg-orange-100 text-orange-800" },
-  faq:       { label: "FAQ",       color: "bg-gray-100 text-gray-800" },
+  billing:   { label: "Billing Agent",   color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+  technical: { label: "Technical Agent", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+  product:   { label: "Product Agent",   color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
+  complaint: { label: "Complaint Agent", color: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
+  faq:       { label: "FAQ Agent",       color: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20" },
 };
 
 export function AgentResponseCard({ response }: { response: AgentResponse }) {
   const meta = AGENT_META[response.agent] ?? {
     label: response.agent,
-    color: "bg-gray-100 text-gray-800",
+    color: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
-      <div className="mb-2">
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded ${meta.color}`}>
-          {meta.label} Agent
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-tl-sm shadow-xl overflow-hidden transition-all duration-300 hover:border-zinc-700">
+      <div className="px-5 py-3 border-b border-zinc-800/50 flex items-center justify-between bg-zinc-900/50">
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${meta.color}`}>
+          {meta.label}
         </span>
       </div>
-      <p className="text-gray-800 whitespace-pre-wrap text-sm leading-relaxed">
-        {response.answer}
-      </p>
+      
+      <div className="px-5 py-4 text-zinc-200 prose prose-invert prose-sm max-w-none leading-relaxed">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {response.answer}
+        </ReactMarkdown>
+      </div>
+
       {response.sources.length > 0 && (
-        <div className="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-1">
+        <div className="px-5 py-3 bg-zinc-950/30 border-t border-zinc-800/50 flex flex-wrap gap-2">
           {response.sources.map((s) => (
             <span
               key={s}
-              className="text-[10px] bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200"
+              className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-300 transition-colors bg-zinc-900 border border-zinc-800 px-2 py-1 rounded-md"
             >
-              📄 {s}
+              <FileText className="w-3 h-3" />
+              {s}
             </span>
           ))}
         </div>
